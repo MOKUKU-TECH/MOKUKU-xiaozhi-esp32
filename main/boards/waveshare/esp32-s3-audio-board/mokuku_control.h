@@ -64,6 +64,8 @@ class MokukuControl {
                          return true;
                        });
 
+    // TODO obtain the status of the car from MOKUKU
+
     xTaskCreatePinnedToCore(
         [](void* arg) {
           MokukuControl* mkk_control = (MokukuControl*)arg;
