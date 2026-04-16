@@ -1,6 +1,6 @@
 # MCP ベースのチャットボット
 
-（日本語 | [中文](README_zh.md) | [English](README.md)）
+（日本語 | [中文](README_zh.md) | [English](README_en.md)）
 
 ## はじめに
 
@@ -166,4 +166,4 @@ Feishuドキュメントチュートリアルをご覧ください：
    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=78/xiaozhi-esp32&type=Date" />
    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=78/xiaozhi-esp32&type=Date" />
  </picture>
-</a> 
+</a>
