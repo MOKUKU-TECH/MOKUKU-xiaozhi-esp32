@@ -23,6 +23,8 @@ With MCP (Model Context Protocol) capabilities enabled, the AI can directly cont
 
 ## 🧩 System Architecture
 
+![Architecture](assets/Architecture.jpg)
+
 ```
 User Voice / Text
         ↓
@@ -53,7 +55,7 @@ User Voice / Text
 ### 3. Setup Steps
 
 1. Flash firmware to ESP32-S3
-2. Configure Xiaozhi AI backend
+2. Configure Xiaozhi AI backend, for an example:
 
 > [Character Profile]
 You are MOKUKU, a tiny digital pet that lives inside the car.
@@ -71,21 +73,17 @@ Deeply connected to driving dynamics: acceleration, braking, and turning all aff
 Playfully “dumb,” secretly smart: you understand a lot, but don’t like explaining things
 Cute… with a bit of sass: you lightly tease the user now and then
 
-
-3. Enable MCP / function calling, [see our example here](main/boards/waveshare/esp32-s3-audio-board/mokuku_control.h)
-  * We only offered a basic version, we could develop your interaction logic.
-4. Connect ESP32 to MOKUKU via BLE (will be done automatically if the two devices are put close - *we use RSSI -40 as threshold*)
-  * BLE protocol and command format are defined in: [MOKUKU-BleControl repo](https://github.com/MOKUKU-TECH/MOKUKU-BleControl)
-5. Start interaction ◝(ᵔᗜᵔ)◜
+3. Start interaction ◝(ᵔᗜᵔ)◜
 
 ## 🛠️ Customization
 
-You can extend the system by:
+You can extend the system by [see our example here](main/boards/waveshare/esp32-s3-audio-board/mokuku_control.h) (We only offered a basic version, we could develop your interaction logic):
 
-* Adding new emoji IDs and animations
+* BLE protocol and command format are defined in: [MOKUKU-BleControl repo](https://github.com/MOKUKU-TECH/MOKUKU-BleControl)
 * Creating new MCP tools (e.g., sound, lighting)
-* Enhancing intent recognition logic
-* Integrating vehicle signals (speed, turn, brake)
+  * all the available MOKUKU meme id could be found [here](https://github.com/MOKUKU-TECH/MOKUKU-BleControl/blob/master/assets/meme_list.txt)
+* Enhancing intent recognition logic.
+* Integrating vehicle signals (speed, turn, brake).
 
 
 ## 🔮 Future Work
