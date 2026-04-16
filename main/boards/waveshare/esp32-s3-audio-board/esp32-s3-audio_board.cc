@@ -18,6 +18,7 @@
 #include "esp_video.h"
 #include "led/circular_strip.h"
 #include "esp_lcd_jd9853.h"
+#include "mokuku_control.h"
 
 #define TAG "waveshare_s3_audio_board"
 
@@ -30,8 +31,8 @@ private:
     Button boot_button_;
     i2c_master_bus_handle_t i2c_bus_;
     esp_io_expander_handle_t io_expander = NULL;
-    LcdDisplay* display_;
-    EspVideo* camera_;
+    LcdDisplay* display_ = NULL;
+    EspVideo* camera_ = NULL;
 
     void InitializeI2c() {
         // Initialize I2C peripheral
@@ -43,10 +44,10 @@ private:
         };
         ESP_ERROR_CHECK(i2c_new_master_bus(&i2c_bus_cfg, &i2c_bus_));
     }
-    
+
     void InitializeTca9555(void)
     {
-        esp_err_t ret = esp_io_expander_new_i2c_tca95xx_16bit(i2c_bus_, I2C_ADDRESS, &io_expander);  
+        esp_err_t ret = esp_io_expander_new_i2c_tca95xx_16bit(i2c_bus_, I2C_ADDRESS, &io_expander);
         if(ret != ESP_OK)
             ESP_LOGE(TAG, "TCA9554 create returned error");                                                                                  // 打印引脚状态
 
@@ -63,7 +64,7 @@ private:
         ret = esp_io_expander_set_level(io_expander, IO_EXPANDER_PIN_NUM_8, 1);                                                         // 启用喇叭功放
         ret = esp_io_expander_set_level(io_expander, IO_EXPANDER_PIN_NUM_5, false);                                                     // 复位摄像头
         vTaskDelay(pdMS_TO_TICKS(5));
-        ret = esp_io_expander_set_level(io_expander, IO_EXPANDER_PIN_NUM_6, true); 
+        ret = esp_io_expander_set_level(io_expander, IO_EXPANDER_PIN_NUM_6, true);
         vTaskDelay(pdMS_TO_TICKS(5));
         ESP_ERROR_CHECK(ret);
     }
@@ -155,6 +156,21 @@ private:
         });
     }
 
+    void InitializeTools() {
+      // initialize the mokuku
+      MokukuControl& mokuku_control = MokukuControl::GetInstance();
+
+      auto &mcp_server = McpServer::GetInstance();
+      // tool name, tool description, tool function
+      mcp_server.AddTool("self.system.reconfigure_wifi",
+          "End this conversation and enter WiFi configuration mode.\n"
+          "**CAUTION** You must ask the user to confirm this action.",
+          PropertyList(), [this](const PropertyList& properties) {
+              EnterWifiConfigMode();
+              return true;
+          });
+    }
+
     void InitializeCamera() {
         static esp_cam_ctlr_dvp_pin_config_t dvp_pin_config = {
             .data_width = CAM_CTLR_DATA_WIDTH_8,
@@ -196,19 +212,25 @@ private:
 
     }
 public:
-    CustomBoard() :
+    CustomBoard(bool init_camera=false, bool init_display=false) :
         boot_button_(BOOT_BUTTON_GPIO) {
         InitializeI2c();
         InitializeTca9555();
         InitializeSpi();
         InitializeButtons();
-        #ifdef LCD_TYPE_JD9853_SERIAL
-        InitializeJd9853Display(); 
-        #else
-        InitializeSt7789Display(); 
-        #endif
-        InitializeCamera();
-        GetBacklight()->RestoreBrightness();
+        if (init_display) {
+          #ifdef LCD_TYPE_JD9853_SERIAL
+          InitializeJd9853Display();
+          #else
+          InitializeSt7789Display();
+          #endif
+          GetBacklight()->RestoreBrightness();
+        }
+        if (init_camera) {
+          InitializeCamera();
+        }
+        InitializeTools();
+        ESP_LOGI(TAG, "CustomBoard initialized.");
     }
 
     virtual Led* GetLed() override {
@@ -223,12 +245,18 @@ public:
     }
 
     virtual Display* GetDisplay() override {
+      if (display_ != NULL) {
         return display_;
+      }
+      return WifiBoard::GetDisplay();
     }
-    
+
     virtual Backlight* GetBacklight() override {
+      if (display_ != NULL) {
         static PwmBacklight backlight(DISPLAY_BACKLIGHT_PIN, BACKLIGHT_INVERT);
         return &backlight;
+      }
+      return WifiBoard::GetBacklight();
     }
 
     virtual Camera* GetCamera() override {

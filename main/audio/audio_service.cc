@@ -159,11 +159,28 @@ void AudioService::Start() {
 #endif
 
     /* Start the opus codec task */
-    xTaskCreate([](void* arg) {
-        AudioService* audio_service = (AudioService*)arg;
-        audio_service->OpusCodecTask();
-        vTaskDelete(NULL);
-    }, "opus_codec", 2048 * 12, this, 2, &opus_codec_task_handle_);
+    // xTaskCreate([](void* arg) {
+    //     AudioService* audio_service = (AudioService*)arg;
+    //     audio_service->OpusCodecTask();
+    //     vTaskDelete(NULL);
+    // }, "opus_codec", 2048 * 12, this, 2, &opus_codec_task_handle_);
+    // use PSRAM to save memeory
+    const size_t stack_size = 2048 * 12;
+    if (opus_codec_task_stack_ == nullptr) {
+      opus_codec_task_stack_ = (StackType_t*)heap_caps_malloc(stack_size, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+      assert(opus_codec_task_stack_ != nullptr);
+    }
+    if (opus_codec_task_buffer_ == nullptr) {
+      opus_codec_task_buffer_ = (StaticTask_t*)heap_caps_malloc(sizeof(StaticTask_t), MALLOC_CAP_INTERNAL);
+      assert(opus_codec_task_buffer_ != nullptr);
+    }
+    opus_codec_task_handle_ = xTaskCreateStatic(
+        [](void* arg) {
+          AudioService* audio_service = (AudioService*)arg;
+          audio_service->OpusCodecTask();
+          vTaskDelete(NULL);
+        },
+        "opus_codec", stack_size, this, 2, opus_codec_task_stack_, opus_codec_task_buffer_);
 }
 
 void AudioService::Stop() {
@@ -660,9 +677,8 @@ bool AudioService::IsIdle() {
 
 void AudioService::WaitForPlaybackQueueEmpty() {
     std::unique_lock<std::mutex> lock(audio_queue_mutex_);
-    audio_queue_cv_.wait(lock, [this]() { 
-        return service_stopped_ || (audio_decode_queue_.empty() && audio_playback_queue_.empty()); 
-    });
+    audio_queue_cv_.wait(
+        lock, [this]() { return service_stopped_ || (audio_decode_queue_.empty() && audio_playback_queue_.empty()); });
 }
 
 void AudioService::ResetDecoder() {

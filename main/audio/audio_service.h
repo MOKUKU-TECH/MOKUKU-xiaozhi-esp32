@@ -31,9 +31,9 @@
  * 2. (Server) -> {Decode Queue} -> [Opus Decoder] -> {Playback Queue} -> (Speaker)
  *
  * We use one task for MIC / Speaker / Processors, and one task for Opus Encoder / Opus Decoder.
- * 
+ *
  * Decode Queue and Send Queue are the main queues, because Opus packets are quite smaller than PCM packets.
- * 
+ *
  */
 
 #define OPUS_FRAME_DURATION_MS 60
@@ -146,7 +146,7 @@ private:
     std::mutex input_resampler_mutex_;
     esp_ae_rate_cvt_handle_t input_resampler_ = nullptr;
     esp_ae_rate_cvt_handle_t output_resampler_ = nullptr;
-    
+
     // Encoder/Decoder state
     int encoder_sample_rate_ = 16000;
     int encoder_duration_ms_ = OPUS_FRAME_DURATION_MS;
@@ -173,6 +173,9 @@ private:
     std::deque<std::unique_ptr<AudioTask>> audio_playback_queue_;
     // For server AEC
     std::deque<uint32_t> timestamp_queue_;
+
+    StaticTask_t* opus_codec_task_buffer_ = nullptr;
+    StackType_t* opus_codec_task_stack_ = nullptr;
 
     bool wake_word_initialized_ = false;
     bool audio_processor_initialized_ = false;
