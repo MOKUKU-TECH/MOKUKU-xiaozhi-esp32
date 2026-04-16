@@ -77,6 +77,8 @@ Cute… with a bit of sass: you lightly tease the user now and then
 
 3. Start interaction ◝(ᵔᗜᵔ)◜
 
+![interaction](assets/MOKUKU_XIAOZHI.gif)
+
 ## 🛠️ Customization
 
 You can extend the system by [see our example here](main/boards/waveshare/esp32-s3-audio-board/mokuku_control.h) (We only offered a basic version, we could develop your interaction logic):
