@@ -26,6 +26,67 @@
 #define LCD_OPCODE_READ_CMD         (0x0BULL)
 #define LCD_OPCODE_WRITE_COLOR      (0x32ULL)
 
+
+class MokukuDisplay : public Display {
+public:
+    MokukuDisplay(): Display() {
+      // initialize emoji collection
+      // emoji_collection_["neutral"] = std::vector<uint8_t>{0};
+      emoji_collection_["happy"] = std::vector<uint8_t>{38, 31, 54, 40};
+      emoji_collection_["laughing"] = std::vector<uint8_t>{46};
+      emoji_collection_["funny"] = std::vector<uint8_t>{39, 48, 33};
+      emoji_collection_["sad"] = std::vector<uint8_t>{};
+      emoji_collection_["crying"] = std::vector<uint8_t>{};
+      emoji_collection_["loving"] = std::vector<uint8_t>{};
+      emoji_collection_["embarrassed"] = std::vector<uint8_t>{};
+      emoji_collection_["surprised"] = std::vector<uint8_t>{};
+      emoji_collection_["shocked"] = std::vector<uint8_t>{};
+      emoji_collection_["thinking"] = std::vector<uint8_t>{36};
+      emoji_collection_["winking"] = std::vector<uint8_t>{28, 31};
+      emoji_collection_["cool"] = std::vector<uint8_t>{49, 1};
+      emoji_collection_["relaxed"] = std::vector<uint8_t>{24, 25};
+      emoji_collection_["delicious"] = std::vector<uint8_t>{};
+      emoji_collection_["kissy"] = std::vector<uint8_t>{};
+      emoji_collection_["confident"] = std::vector<uint8_t>{32, 1};
+      emoji_collection_["sleepy"] = std::vector<uint8_t>{8};
+      emoji_collection_["silly"] = std::vector<uint8_t>{43};
+      emoji_collection_["confused"] = std::vector<uint8_t>{5};
+    }
+    ~MokukuDisplay() {
+    }
+
+    virtual void SetEmotion(const char* emotion) override {
+      ESP_LOGW(TAG, "SetEmotion: %s", emotion);
+
+      auto it = emoji_collection_.find(emotion);
+      if (it != emoji_collection_.end()) {
+        // return it->second;
+        uint16_t cand_cnt = it->second.size();
+        uint16_t emoji_id = esp_random() % cand_cnt;  // Select a random index
+        // set the emoji
+        MokukuControl& mokuku_control = MokukuControl::GetInstance();
+        mokuku_control.set_up_emoji(it->second[emoji_id], false);
+      }
+    }
+
+    virtual void SetPowerSaveMode(bool on) override {
+      if (on) {
+        SetEmotion("sleepy");
+      } else {
+        SetEmotion("neutral");
+      }
+    }
+
+    virtual bool Lock(int timeout_ms = 0) override {
+        return true;
+    }
+    virtual void Unlock() override {}
+
+    std::vector<uint8_t> always_fit_emojis_;
+    std::map<std::string, std::vector<uint8_t>> emoji_collection_;
+};
+
+
 class CustomBoard : public WifiBoard {
 private:
     Button boot_button_;
@@ -248,7 +309,8 @@ public:
       if (display_ != NULL) {
         return display_;
       }
-      return WifiBoard::GetDisplay();
+      static MokukuDisplay display;
+      return &display;
     }
 
     virtual Backlight* GetBacklight() override {

@@ -20,6 +20,13 @@ class MokukuControl {
     static MokukuControl instance;
     return instance;
   }
+  void set_up_emoji(uint8_t id, bool force) {
+    if (latest_emoji_id_ > 0 && !force) {
+      return;
+    }
+    latest_emoji_id_ = id;
+  }
+
   MokukuControl() {
     auto& mcp_server = McpServer::GetInstance();
     mcp_server.AddTool("self.mokuku.set_emoji",
