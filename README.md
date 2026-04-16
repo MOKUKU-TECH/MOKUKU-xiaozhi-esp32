@@ -55,6 +55,8 @@ User Voice / Text
 ### 3. Setup Steps
 
 1. Flash firmware to ESP32-S3
+  * `idf.py build flash monitor`
+  * Configure Xiaozhi following [xiaozhi's doc](README_en.md)
 2. Configure Xiaozhi AI backend, for an example:
 
 > [Character Profile]
